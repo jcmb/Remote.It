@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-import json
-import os
-from pprint import pprint
+
 import argparse
-import sys
-from datetime import datetime
-import urllib.parse
+
+#import json
+#import os
+from pprint import pprint
+#import sys
+#from datetime import datetime
+#import urllib.parse
 import logging
 
-import cgitb
+#import cgitb
 #cgitb.enable()
 
-import collections
+#import collections
 
-from JCMBSoftPyLib import HTML_Unit
+#from JCMBSoftPyLib import HTML_Unit
 import tempfile
 
 from RemoteIt import RemoteIt
@@ -68,31 +70,30 @@ def write_Units_File(Units_Filename,all_devices):
 
 
 
-def output_device_info (devices_details,device_ids,all_devices):
+def output_device_info (devices_details,missing_devices,device_ids,all_devices,all_services):
+#   pprint(devices_details)
+   for device in devices_details:
+#      pprint (device)
+      if device["devicealias"].startswith(device_ids):
+         if device["servicetitle"] == "Bulk Service":
+            if device["devicestate"] != "active":
+               continue
 
-#   devices=de_dup_sort_devices (devices_details,model)
-
-   for current_device in devices_details:
-#      print (current_device)
-#      device_prefix=current_device+" - "
-
-      for device in devices_details:
-   #      pprint(device)
-   #      print(device["servicetitle"])
-         if device["devicealias"].startswith(device_ids):
-            if device["devicestate"] =="active":
-         #      pprint (device)
-               print ("    {:35s} {:11s} {:6s} {:16s} {:16s} ".format(device["deviecealias"],device["servicetitle"],device["devicestate"],device["lastinternalip"],device["devicelastip"],device["deviceaddress"]))
-#      print()
-
-   print()
-   if all_devices:
-      for device in devices_details:
-         if device["devicealias"].startswith(device_ids):
+         if device["devicestate"] =="active" or all_services:
             if device["servicetitle"] == "Bulk Service":
-               if device["devicestate"] == "inactive":
-                  print(device["devicealias"], "Inactive", device["lastcontacted"],device["deviceaddress"])
-   #         pprint(device)
+               print ("{:35s}     {:12s} {:8s} {:22s} {:22s} {}".format(device["devicealias"],device["servicetitle"],device["devicestate"],device["lastinternalip"],device["devicelastip"],device["deviceaddress"]))
+            else:
+               print ("    {:35s} {:12s} {:8s} {:22s} {:22s} {}".format(device["devicealias"],device["servicetitle"],device["devicestate"],device["lastinternalip"],device["devicelastip"],device["deviceaddress"]))
+
+   if all_devices:
+     for device in devices_details:
+        if device["devicealias"].startswith(device_ids):
+           if device["servicetitle"] == "Bulk Service":
+              if device["devicestate"] == "inactive":
+                 print(device["devicealias"], "Inactive", device["lastcontacted"],device["deviceaddress"])
+     for device in missing_devices:
+        print(device, "Not Registered")
+      #         pprint(device)
 
 
 
@@ -169,11 +170,20 @@ def output_device_info_html (HTML_File,services_details,device_ids,all_devices,a
                            device["servicetitle"],
                            device["deviceaddress"]])
                      else:
-                        HTML_Unit.output_table_row(HTML_File,[
-                           '<a href="/cgi-bin/remote_connect?Address={}&Type={}">{}</a>'.format(urllib.parse.quote(device["deviceaddress"]), urllib.parse.quote(device["servicetitle"]), device["devicealias"]),
-                           device["devicestate"],
-                           device["servicetitle"],
-                           device["deviceaddress"]])
+#                        print(device["devicealias"])
+                        if device["devicealias"] == "VNC" :
+                           HTML_Unit.output_table_row(HTML_File,[
+                              '<a href="/cgi-bin/remote_connect?Address={}&Type={}">{}</a>'.format(urllib.parse.quote(device["deviceaddress"]), urllib.parse.quote(device["devicealias"]), device["devicealias"]),
+                              device["devicestate"],
+                              device["servicetitle"],
+                              device["deviceaddress"]])
+                        else:
+                           HTML_Unit.output_table_row(HTML_File,[
+                              '<a href="/cgi-bin/remote_connect?Address={}&Type={}">{}</a>'.format(urllib.parse.quote(device["deviceaddress"]), urllib.parse.quote(device["servicetitle"]), device["devicealias"]),
+                              device["devicestate"],
+                              device["servicetitle"],
+                              device["deviceaddress"]])
+                           
                   else:
                      HTML_Unit.output_table_row(HTML_File,[
                         device["devicealias"],
@@ -211,7 +221,6 @@ def main():
    if not remoteIt.connect_to_remote_it():
       sys.exit("Connecting to Remote.it failed")
    devices_details=remoteIt.get_devices(args["model"])
-
 #   pprint (devices_details)
 
    if devices_details==None:
@@ -220,9 +229,7 @@ def main():
    active_devices,inactive_devices=remoteIt.get_device_ids (devices_details,args["model"])
 
    all_devices=active_devices+inactive_devices
-
-#   pprint(all_devices)
-
+   
    missing_devices=[]
 
    for serial in args["model"]:
@@ -234,32 +241,20 @@ def main():
    if args["units"]:
       write_Units_File(tempfile.gettempdir()+"/Units",all_devices)
 
-
    if args["all"]:
-      services_details=remoteIt.get_service_details(devices_details, tuple(all_devices),args["services"])
-      report_devices=all_devices      
+      report_devices=all_devices
    else:
-      services_details=remoteIt.get_service_details(devices_details, tuple(active_devices),args["services"])
       report_devices=active_devices
 
+#   pprint (report_devices)
+
+   if args["services"]:
+      services_details=remoteIt.get_service_details(devices_details, tuple(all_devices),args["services"])
 #      pprint(device_details)
-      Device_Prefix=DeviceId
-
-#      if CLI_Registered:
-#      else:
-#         Device_Prefix=DeviceId+"_"
-
-      for service in device_details:
-         if  service["devicealias"] == DeviceId:
-            service["devicealias"]="Bulk Service"
-         else:
-            service["devicealias"]=service["devicealias"].replace(Device_Prefix+" - ","")
-            service["devicealias"]=service["devicealias"].replace(Device_Prefix+"_","")
-#      pprint(device_details)
-      return(device_details)
+   else:
+      services_details=remoteIt.get_service_details(devices_details, tuple(active_devices),args["services"])
 
 
-#   pprint (services_details)
 
    if args["html"]:
       HTML_File=sys.stdout;
@@ -267,7 +262,7 @@ def main():
       HTML_Unit.output_html_body(HTML_File)
 
       output_device_info_html(HTML_File,services_details,report_devices,args["all"],args["services"],args["nolinks"],missing_devices)
-      
+
       for device  in report_devices:
          device_details=remoteIt.get_duplicate_devices(devices_details, device)
          
@@ -278,15 +273,15 @@ def main():
          else :
            HTML_File.write("<br>{}: Registered {} times<br>\n".format(device,len(device_details)))
            HTML_Unit.output_table_header(HTML_File,device,"{} duplicate registrations".format(device),["Device Address","Last Contact","Active"])
-           # Note that Remote.it ID's for duplicates seem to increase, so we don't have to sort by the date. At least for now
-           for dev in sorted(device_details, reverse=True):
+           for dev in device_details:
                HTML_Unit.output_table_row(HTML_File,[device_details[dev]["deviceaddress"],device_details[dev]["lastcontacted"],device_details[dev]["devicestate"]])
            HTML_Unit.output_table_footer(HTML_File)
-            
+      
       HTML_File.write("Generated: {}".format(datetime.now()))
       HTML_Unit.output_html_footer(HTML_File,["Devices","Active_Services","unregistered"])
    else:
-      output_device_info(devices_details,args["model"],args["all"])
+      output_device_info(devices_details,missing_devices,args["model"],args["all"],args["services"])
+#      pass
 
 
 if __name__ == '__main__':

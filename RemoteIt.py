@@ -1,26 +1,21 @@
 #!/usr/bin/env python3
 import requests
-import json
-import os
-from pprint import pprint
-import sys
-from datetime import datetime
-import os
+
 import logging
 
-import collections
+import json
+#from pprint import pprint
 
 try:
     import http.client as http_client
 except ImportError:
-    # Python 2
+    # Python 2, not tested any longer
     import httplib as http_client
-http_client.HTTPConnection.debuglevel = 1
 
 
 
 class RemoteIt(object):
-   def __init__(self, username,password,dev_key, logging_dir=None, timeout=5, base_url="https://api.remot3.it/apv/v27/",):
+   def __init__(self, username,password,dev_key, logging_dir=None, timeout=5, base_url="https://api.remot3.it/apv/v27/",verbose=False):
       self.base_url=base_url
       self.timeout=timeout
       self.username=username
@@ -29,6 +24,15 @@ class RemoteIt(object):
       self.log_dir=logging_dir
       self.token=None
       self.serivce_token=None
+      self.verbose=verbose
+      
+      if self.verbose:
+         logging.getLogger("requests").setLevel(logging.DEBUG)
+         http_client.HTTPConnection.debuglevel = 1         
+      else:
+         logging.getLogger("requests").setLevel(logging.WARNING)
+      
+      
 
    def set_logging(self,logging_dir):
       self.log_dir=logging_dir
@@ -55,7 +59,7 @@ class RemoteIt(object):
       if self.log_dir == None:
          return
 
-      log_file_dir=self.   log_dir+"/"+model
+      log_file_dir=self.log_dir+"/"+model
       log_file_name=log_file_dir+"/"+datetime.now().strftime("%Y-%m-%d--%H-%M-%S")+".json"
       if not os.path.exists(log_file_dir):
          os.makedirs(log_file_dir)
@@ -237,6 +241,6 @@ class RemoteIt(object):
       response = requests.post(url, data=json.dumps(body), headers=headers)
       response_body = response.json()
 
-      pprint (response_body)
+#<      pprint (response_body)
       return(None)
 

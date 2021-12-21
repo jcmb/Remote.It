@@ -181,9 +181,9 @@ class RemoteIt(object):
       devices_details=[]
       if serials:
          for serial in serials:
-            print (serial)
+#            print (serial)
             serial_details=self.get_devices_by_name(serial)
-            pprint (serial_details)
+#            pprint (serial_details)
             if serial_details==None:
                logging.critical("The Remote.it server did not return data for {}. Normally this is too many results for this prefix.".format(serial))
                devices_details=None

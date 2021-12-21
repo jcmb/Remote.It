@@ -2,20 +2,19 @@
 
 import argparse
 
-#import json
-#import os
 from pprint import pprint
-#import sys
-#from datetime import datetime
-#import urllib.parse
 import logging
+import sys
+import urllib
+from datetime import datetime
 
-#import cgitb
-#cgitb.enable()
+try:
+   from JCMBSoftPyLib import HTML_Unit
+   HTML_Unit_Loaded=True
+except:
+   HTML_Unit_Loaded=False
 
-#import collections
 
-#from JCMBSoftPyLib import HTML_Unit
 import tempfile
 
 from RemoteIt import RemoteIt
@@ -28,8 +27,8 @@ def get_args():
    parser.add_argument("-s","--services", help="Report all services, not just active ones",action="store_true")
    parser.add_argument("--html", help="Output in HTML format not text",action="store_true")
    parser.add_argument("--units", help="Write Units file in the temp directory",action="store_true")
-   parser.add_argument("--log", help="Directory store the replies from the server in that folder")
-   parser.add_argument("--nolinks", help="Dont provide links to connect to the devices",action="store_true")
+   parser.add_argument("--log", help="Directory to store the replies from the server in that folder")
+   parser.add_argument("--nolinks", help="Don't provide links to connect to the devices",action="store_true")
 #   parser.add_argument("--preregistered", help="The device was activated into the platform using the pre-registration system",action="store_true")
 
    parser.add_argument("username", help="Account User name",)
@@ -214,8 +213,15 @@ def output_device_info_html (HTML_File,services_details,device_ids,all_devices,a
 
 
 
-def main():
+def main(HTML_Unit_Loaded):
    args=get_args()
+   if args["html"]:
+      import cgitb
+      cgitb.enable()
+      if  not HTML_Unit_Loaded:
+         sys.exit("JCMBSoftPyLib is not installed. You need to download it from https://github.com/jcmb/JCMBSoftPyLib")
+      
+   
    remoteIt=RemoteIt(args["username"],args["password"],args["dev_key"],args["log_dir"])
 
    if not remoteIt.connect_to_remote_it():
@@ -285,4 +291,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(HTML_Unit_Loaded)

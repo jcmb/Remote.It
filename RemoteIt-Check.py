@@ -25,7 +25,9 @@ def get_args():
    parser.add_argument("key", help="Account developer key",)
    parser.add_argument("--Services", help="Number of Services expected",type=int,default=3)
    parser.add_argument("--Device_ID", help="Device ID")
+   parser.add_argument("--Model_ID", help="Model, used with SN File",default="SNM941")
    parser.add_argument("--Reg", help="Registration file, file spec to check", nargs='+', type=str)
+   parser.add_argument("--SN_File", help="SN file, file spec to check", nargs='+', type=str)
    parser.add_argument("--Verbose","-v", help="Verbose",action="store_true")
 
    parser = parser.parse_args()
@@ -37,6 +39,8 @@ def get_args():
    args["Reg_File"]=parser.Reg
    args["Verbose"]=parser.Verbose
    args["Services"]=parser.Services
+   args["Model_ID"]=parser.Model_ID
+   args["SN_File"]=parser.SN_File
    return (args)
 
 
@@ -47,6 +51,8 @@ def get_args():
 
 def main():
    args=get_args()
+   if args["Reg_File"] and args["SN_File"] :
+      sys.exit("Only one of the Reg file, Serial File or can be provided")
    remoteIt=RemoteIt(args["username"],args["password"],args["dev_key"])
 
    if not remoteIt.connect_to_remote_it():
@@ -60,6 +66,64 @@ def main():
             print ("Error: {} has {} instead of {} services".format(args["DEVICE_ID"],len(remotes["devices"]),args["Services"]))
       else:
          print ("Error: {} is not registered".format(args["DEVICE_ID"]))
+
+
+   if args["SN_File"]:
+      Total_Records=0
+      Total_Errors=0
+      Total_Not=0
+
+      for pathname in args["SN_File"]:
+         if args["Verbose"]:
+            sys.stderr.write("Processing: {}\n".format(pathname))
+         Records=0
+         Errors=0
+         Not=0
+
+         (directory,filename)=os.path.split(pathname)
+
+         input_file=open(pathname,"r")
+         to_delete=open(pathname+".to_delete.sh","w")
+
+         regreader = csv.reader(input_file)
+         for row in regreader:
+            remotes=remoteIt.get_devices_by_name(args["Model_ID"] + "-" +row[0])
+   #         pprint(remotes)
+            Records+=1
+            Total_Records+=1
+            if len(remotes["devices"]) == args["Services"]:
+               if args["Verbose"]:
+                  sys.stderr.write ("OK: {} is registered with {} services. From file {}\n".format(row[0],args["Services"],filename))
+            else:
+               if len(remotes["devices"]) == 0:
+                  sys.stdout.write ("Error: {} is not registered. From file {}\n".format(row[0],filename))
+                  Not+=1
+                  Total_Not+=1
+               else:
+                  HW_ID=None
+                  Last_Contact=None
+                  for device in remotes["devices"]:
+#                     pprint(device)
+                     if device["servicetitle"] == "Bulk Service":
+                        Current_HW_ID=device["deviceaddress"]
+#'2021-11-18T17:47:06.717+00:00'
+                        Current_HW_Contact=datetime.strptime(device["lastcontacted"],"%Y-%m-%dT%H:%M:%S.%f%z")
+                        if Last_Contact==None or Last_Contact > Current_HW_Contact:
+                           Last_Contact=Current_HW_Contact
+                           HW_ID=Current_HW_ID
+
+
+                  sys.stdout.write ("Error: {} has {} instead of {} services. HW_ID: {}. From file {}\n".format(row[0],len(remotes["devices"]),args["Services"],HW_ID,filename))
+                  if len(remotes["devices"]) > args["Services"]:
+                     to_delete.write ("./RemoteIt-Delete.py @parameters/prod.params {} {}\n".format(args["Model_ID"] + "-" + row[0],HW_ID))
+                     to_delete.flush
+
+                  Errors+=1
+                  Total_Errors+=1
+
+         sys.stderr.write("{} Records: {} Not Registered: {}, Errors: {} ,Good: {}\n".format(filename, Records, Not, Errors, Records-Not-Errors))
+      sys.stderr.write("Total Records: {} Not Registered: {}, Errors: {} ,Good: {}\n".format(Total_Records, Total_Not, Total_Errors, Total_Records-Total_Not-Total_Errors))
+      to_delete.close(0)
 
 
    if args["Reg_File"]:

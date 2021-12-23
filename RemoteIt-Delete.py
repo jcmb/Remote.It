@@ -1,21 +1,11 @@
 #!/usr/bin/env python3
-import json
-import os
-from pprint import pprint
 import argparse
 import sys
-from datetime import datetime
-import urllib.parse
-import logging
-import csv
 
-import cgitb
 #cgitb.enable()
 
-import collections
 
 from JCMBSoftPyLib import HTML_Unit
-import tempfile
 
 from RemoteIt import RemoteIt
 
@@ -30,6 +20,7 @@ def get_args():
    parser.add_argument("Device_ID", help="Device ID, <Model>-<Serial>")
    parser.add_argument("HW_ID", help="Hardware ID")
    parser.add_argument("--Tell", help="Tell Settings",action="store_true")
+   parser.add_argument("--Force", help="Force Deletion, even if it is the only copy of the device in the account",action="store_true")
    parser.add_argument("--Verbose", help="Verbose",action="store_true")
 
    parser = parser.parse_args()
@@ -39,17 +30,19 @@ def get_args():
    args["dev_key"]=parser.key
    args["Device_ID"]=parser.Device_ID
    args["HW_ID"]=parser.HW_ID
+   args["Force"]=parser.Force
    args["Verbose"]=parser.Verbose
 #   args["HW_ID"]=args["HW_ID"].replace(":","")
-   
+
    if parser.Tell :
       sys.stderr.write("Username: {}\n".format(args["username"]))
       sys.stderr.write("Password: {}\n".format(args["password"]))
       sys.stderr.write("Key: {}\n".format(args["dev_key"]))
       sys.stderr.write("Device ID : {}\n".format(args['Device_ID']))
       sys.stderr.write("HW ID : {}\n".format(args['HW_ID']))
+      sys.stderr.write("Force Delete: {}\n".format(args['Force']))
       sys.stderr.write("Verbose: {}\n".format(args['Verbose']))
-     
+
    return (args)
 
 
@@ -73,16 +66,20 @@ def main():
    for device in remotes["devices"]:
       if device["servicetitle"] == "Bulk Service":
          number_items+=1
-   
+
    if number_items == 0:
       sys.stdout.write("{} is not registered\n".format(args["Device_ID"]))
       sys.exit(1)
-      
+
    if number_items == 1:
-      sys.stdout.write("{} is only registered once\n".format(args["Device_ID"]))
-      sys.exit(2)
-      
-         
+      if args["Force"]:
+         if args["Verbose"]:
+            sys.stderr.write("{} is only registered once. Deleting due to --Force.\n".format(args["Device_ID"]))
+      else:
+         sys.stdout.write("{} is only registered once.\n".format(args["Device_ID"]))
+         sys.exit(2)
+
+
 
    for device in remotes["devices"]:
       if device["servicetitle"] == "Bulk Service":
@@ -92,10 +89,10 @@ def main():
          break
 
    if not Found_HW_ID:
-      print ("Device: {} with HW ID of {} is not registered".format(args["Device_ID"],args["HW_ID"]))
+      sys.stderr.write("Device: {} is not registered with HW ID of {}. But it is registered with different HW ID's\n".format(args["Device_ID"],args["HW_ID"]))
       sys.exit(3)
    else:
-      print ("Deleting: {} with hardware id of {}".format(args["Device_ID"],args["HW_ID"]))
+      sys.stdout.write ("Deleting: {} with hardware id of {}\n".format(args["Device_ID"],args["HW_ID"]))
       devices_details=remoteIt.delete_device(args["HW_ID"])
 
 

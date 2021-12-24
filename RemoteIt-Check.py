@@ -123,7 +123,7 @@ def main():
 
          sys.stderr.write("{} Records: {} Not Registered: {}, Errors: {} ,Good: {}\n".format(filename, Records, Not, Errors, Records-Not-Errors))
       sys.stderr.write("Total Records: {} Not Registered: {}, Errors: {} ,Good: {}\n".format(Total_Records, Total_Not, Total_Errors, Total_Records-Total_Not-Total_Errors))
-      to_delete.close(0)
+      to_delete.close()
 
 
    if args["Reg_File"]:

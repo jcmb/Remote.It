@@ -4,7 +4,7 @@ import requests
 import logging
 
 import json
-#from pprint import pprint
+from pprint import pprint
 
 try:
     import http.client as http_client
@@ -25,14 +25,14 @@ class RemoteIt(object):
       self.token=None
       self.serivce_token=None
       self.verbose=verbose
-      
+
       if self.verbose:
          logging.getLogger("requests").setLevel(logging.DEBUG)
-         http_client.HTTPConnection.debuglevel = 1         
+         http_client.HTTPConnection.debuglevel = 1
       else:
          logging.getLogger("requests").setLevel(logging.WARNING)
-      
-      
+
+
 
    def set_logging(self,logging_dir):
       self.log_dir=logging_dir
@@ -198,7 +198,7 @@ class RemoteIt(object):
 
    def get_service_details(self,devices_details, device_ids,inactive=False):
       service_details={}
-#      pprint(devices_details)      
+#      pprint(devices_details)
       for device in devices_details:
 #         pprint(device)
          if device["devicealias"].startswith(device_ids):
@@ -231,8 +231,8 @@ class RemoteIt(object):
       }
       body = {
       }
-      
-      
+
+
       url = self.base_url +"developer/device/delete/registered/" + hw_id
 
 #      print (headers)
@@ -241,6 +241,6 @@ class RemoteIt(object):
       response = requests.post(url, data=json.dumps(body), headers=headers)
       response_body = response.json()
 
-#<      pprint (response_body)
-      return(None)
+#      pprint (response_body)
+      return(response_body["status"])
 

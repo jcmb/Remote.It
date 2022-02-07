@@ -9,6 +9,8 @@ from JCMBSoftPyLib import HTML_Unit
 
 from RemoteIt import RemoteIt
 
+from pprint import pprint
+
 
 def get_args():
 
@@ -92,9 +94,13 @@ def main():
       sys.stderr.write("Device: {} is not registered with HW ID of {}. But it is registered with different HW ID's\n".format(args["Device_ID"],args["HW_ID"]))
       sys.exit(3)
    else:
-      sys.stdout.write ("Deleting: {} with hardware id of {}\n".format(args["Device_ID"],args["HW_ID"]))
+      sys.stdout.write ("Deleting: {} with hardware id of {}, ".format(args["Device_ID"],args["HW_ID"]))
       devices_details=remoteIt.delete_device(args["HW_ID"])
-
+      if devices_details:
+         sys.stdout.write("Succeeded.\n")
+      else:
+         sys.stdout.write("Failed.\n")
+      sys.stdout.flush()
 
 if __name__ == '__main__':
     main()

@@ -27,12 +27,13 @@ def Check_For_Dups(infile):
     dups=[]
     for each_row in reader:
 #        print(each_row)
+#        print(len(each_row))
         if each_row["Enabled"] != "True": #If it is not enabled we skip it, this should never be the case
             continue
 
-        if len(each_row) != 7:
+        if len(each_row) != 11:
 #            print(each_row)
-            sys.exit("Error: Row does not have 7 fields")
+            sys.exit("Error: Row does not have 11 fields")
 
         if each_row["Name"] in devices:
 #            pprint(devices[each_row["Name"]])

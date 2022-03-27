@@ -7,6 +7,8 @@ from pprint import pprint
 import sys
 import logging
 import argparse
+import ipaddress
+
 
 try:
     from requests_http_signature import HTTPSignatureAuth
@@ -37,12 +39,12 @@ def Full_Account(key_id,key_secret_id,size=1000):
     hasMore=True
     last=""
     items_so_far=0
-    print("Name", "Enabled","ID", "Owner", "Created", "LastReported","Services",sep=',')
+    print("Name", "Enabled","ID", "Owner", "Created", "LastReported","Services","eMail","InternalIPType","InternalIP","VNCProblme",sep=',')
 
     while hasMore:
 
     #    body = {"query": "query { login { devices (size : 10, after : \"" + last + "\" sort: \"created\") { hasMore total  last items { id  name owner { email } created lastReported}}}}"}
-        body = {"query": "query { login { devices (size : " + str(size) + " after : \"" + last + "\" sort: \"created\") { hasMore total  last items { enabled platform id  name owner { email } created lastReported services {title  enabled state name}}}}}"}
+        body = {"query": "query { login { devices (size : " + str(size) + " after : \"" + last + "\" sort: \"created\") { hasMore total  last items { enabled platform id  name owner { email } created lastReported services {title  enabled state name} endpoint {name internalAddress externalAddress}}}}}"}
         content_length_header = str(len(body))
         headers = {
             'host': host,
@@ -64,18 +66,17 @@ def Full_Account(key_id,key_secret_id,size=1000):
                                  headers=headers)
 
         if response.status_code != 200:
-            print("Error in Request")
-            pprint(response.text)
+            sys.stderr.write("Error in Request\n")
+            sys.stderr.write(response.text)
             sys.exit(3)
 
         reply=response.json()
         if "errors" in reply:
-            print("Error in Query")
-            pprint(reply)
+            sys.stderr.write("Error in Query\n")
+            sys.stderr.write(reply)
             sys.exit(2)
 
         RemoteItJson=response.json()["data"] ["login"] ["devices"]
-    #    print(len(RemoteItJson["items"]))
         if response.status_code != 200:
             print(response.status_code)
             sys.exit(1)
@@ -84,9 +85,53 @@ def Full_Account(key_id,key_secret_id,size=1000):
 
         items_so_far+=len(RemoteItJson["items"])
 
+        SNMSubnet=ipaddress.ip_network("192.168.88.0/24")
+        VerizonSubnet=ipaddress.ip_network("100.0.0.0/8")
+#        NMSubnet=ipaddress.ip_network("192.168.9.0/24")
+
         for device in RemoteItJson["items"]:
-    ##        pprint(device)
-            print(device["name"],device["enabled"],device["id"],device["owner"]["email"],device["created"],device["lastReported"],len(device["services"]),sep=',')
+#            pprint(device)
+#            pprint(device["services"])
+
+            has_VNC_service=False
+
+            for service in device["services"]:
+                if service["name"] == "VNC":
+                    has_VNC_service=True
+
+
+
+            if device["endpoint"] == None:
+               internalAddress=None
+               externalAddress=None
+               internalAddressStr=""
+               internalAddressType=""
+            else:
+               internalAddress=device["endpoint"]["internalAddress"]
+               externalAddress=device["endpoint"]["externalAddress"]
+               internalAddressStr=internalAddress[:internalAddress.index(":")]
+               internalAddressType=""
+#               print (device["endpoint"]["name"])
+
+            if internalAddress != None:
+                internalAddressStr=internalAddress[:internalAddress.index(":")]
+#                print(internalAddressStr)
+                internalIP=ipaddress.ip_address(internalAddressStr)
+                internalIP=ipaddress.IPv4Network(internalAddressStr)
+
+                internalAddressType="Normal"
+
+                if internalIP.subnet_of(SNMSubnet):
+                    internalAddressType="SNM"
+                elif internalIP.subnet_of(VerizonSubnet):
+                    internalAddressType="Verizon"
+                else:
+                    if internalIP.is_private:
+                        internalAddressType="Private"
+
+
+#                print(internalAddressStr)
+            print(device["name"],device["enabled"],device["id"],device["owner"]["email"],device["created"],device["lastReported"],len(device["services"]),device["owner"],internalAddressType,internalAddressStr,has_VNC_service,sep=',')
     #        if device["owner"]["email"].lower() != "civil-remot3it-provisioning-ug@trimble.com":
     #            print(device["name"],device["id"],device["owner"]["email"],device["created"],sep=',')
     #            invalid_emails+=1

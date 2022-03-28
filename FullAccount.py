@@ -39,7 +39,7 @@ def Full_Account(key_id,key_secret_id,size=1000):
     hasMore=True
     last=""
     items_so_far=0
-    print("Name", "Enabled","ID", "Owner", "Created", "LastReported","Services","eMail","InternalIPType","InternalIP","VNCProblme",sep=',')
+    print("Name", "Enabled","ID", "Owner", "Created", "LastReported","Services","eMail","InternalIPType","InternalIP","VNCProblem",sep=',')
 
     while hasMore:
 

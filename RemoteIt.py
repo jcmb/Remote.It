@@ -244,3 +244,34 @@ class RemoteIt(object):
 #      pprint (response_body)
       return(response_body["status"])
 
+
+   def transfer_device(self,hw_id,new_account):
+
+      url = self.base_url + "developer/devices/transfer/start/";
+
+
+      headers = {
+          "developerkey": self.dev_key,
+          "token" : self.token,
+          "Content-Type": "text/plain;charset=UTF-8"
+
+      }
+      body = {
+         "queue_name": "WeavedTaskQueue",
+         "label": "transferring",
+         "options": {"devices":hw_id, "newuser":new_account, "emails": new_account }
+
+      }
+
+
+
+#      print (headers)
+#      print (url)
+#      print (json.dumps(body))
+
+      response = requests.post(url, data=json.dumps(body), headers=headers)
+      response_body = response.json()
+
+#      pprint (response_body)
+      return(response_body["status"])
+

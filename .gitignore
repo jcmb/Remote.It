@@ -117,3 +117,5 @@ parameters/DOM.ini
 parameters/prod.params
 parameters/prov.params
 parameters/RemoteIt.ini
+*.key
+*.csv

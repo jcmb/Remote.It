@@ -6,6 +6,8 @@ import logging
 import json
 from pprint import pprint
 
+from datetime import datetime
+
 try:
     import http.client as http_client
 except ImportError:
@@ -198,17 +200,43 @@ class RemoteIt(object):
 
    def get_service_details(self,devices_details, device_ids,inactive=False):
       service_details={}
+      hardware_id_details={}
 #      pprint(devices_details)
       for device in devices_details:
 #         pprint(device)
-         if device["devicealias"].startswith(device_ids):
-            if inactive or device["devicestate"]=="active" or device["devicealias"].find(" - "):
+#         pprint(hardware_id_details)
+#         print (device["hardwareid"] in hardware_id_details)
+         if device["devicealias"] == "VNC":
+            device["devicealias"] = hardware_id_details[device["hardwareid"]]["devicealias"] + " - VNC - Missing Device ID"
+         if device["devicealias"].startswith(device_ids) or (device["hardwareid"] in hardware_id_details):
+            if inactive or device["devicestate"]=="active": # or device["devicealias"].find(" - "):
                if device["devicealias"] in service_details:
-                  if device["devicestate"]=="active":
+#                  print(datetime.strptime(device["lastcontacted"],"%Y-%m-%dT%H:%M:%S.%f%z"))
+                  if datetime.strptime(device["lastcontacted"],"%Y-%m-%dT%H:%M:%S.%f%z") > datetime.strptime(service_details[device["devicealias"]]["lastcontacted"],"%Y-%m-%dT%H:%M:%S.%f%z"):
                      service_details[device["devicealias"]]=device
+                     hardware_id_details[device["hardwareid"]]=device
                else:
                   service_details[device["devicealias"]]=device
+                  hardware_id_details[device["hardwareid"]]=device
       return(service_details)
+
+   def get_service_details_with_dups(self,devices_details, device_ids):
+      service_details={}
+      hardware_id_details={}
+      for device in devices_details:
+#         pprint(device)
+#         print (device["hardwareid"] in hardware_id_details)
+         if device["devicealias"] == "VNC":
+            device["devicealias"] = hardware_id_details[device["hardwareid"]]["devicealias"] + " - VNC - Missing Device ID"
+         if device["devicealias"].startswith(device_ids) :
+            if device["servicetitle"]=="Bulk Service" : 
+                service_details[device["devicealias"]]=device
+            else:
+                service_details[device["devicealias"]+":"+device["hardwareid"]]=device
+            hardware_id_details[device["hardwareid"]]=device
+#      print(service_details)
+      return(service_details)
+
 
    def get_duplicate_devices(self,devices_details, device_id):
       device_details={}
@@ -241,37 +269,6 @@ class RemoteIt(object):
       response = requests.post(url, data=json.dumps(body), headers=headers)
       response_body = response.json()
 
-#      pprint (response_body)
-      return(response_body["status"])
-
-
-   def transfer_device(self,hw_id,new_account):
-
-      url = self.base_url + "developer/devices/transfer/start/";
-
-
-      headers = {
-          "developerkey": self.dev_key,
-          "token" : self.token,
-          "Content-Type": "text/plain;charset=UTF-8"
-
-      }
-      body = {
-         "queue_name": "WeavedTaskQueue",
-         "label": "transferring",
-         "options": {"devices":hw_id, "newuser":new_account, "emails": new_account }
-
-      }
-
-
-
-#      print (headers)
-#      print (url)
-#      print (json.dumps(body))
-
-      response = requests.post(url, data=json.dumps(body), headers=headers)
-      response_body = response.json()
-
-#      pprint (response_body)
-      return(response_body["status"])
+#<      pprint (response_body)
+      return(None)
 

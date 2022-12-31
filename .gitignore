@@ -119,3 +119,4 @@ parameters/prov.params
 parameters/RemoteIt.ini
 *.key
 *.csv
+RemoteIt.Params

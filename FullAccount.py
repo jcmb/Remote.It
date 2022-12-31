@@ -44,7 +44,8 @@ def Full_Account(key_id,key_secret_id,size=1000):
     while hasMore:
 
     #    body = {"query": "query { login { devices (size : 10, after : \"" + last + "\" sort: \"created\") { hasMore total  last items { id  name owner { email } created lastReported}}}}"}
-        body = {"query": "query { login { devices (size : " + str(size) + " after : \"" + last + "\" sort: \"created\") { hasMore total  last items { enabled platform id  name owner { email } created lastReported services {title  enabled state name} endpoint {name internalAddress externalAddress}}}}}"}
+#        body = {"query": "query { login { devices (size : " + str(size) + " after : \"" + last + "\" sort: \"created\") { hasMore total  last items { enabled platform id  name owner { email } created lastReported services {title  enabled state name} endpoint {name internalAddress externalAddress}}}}}"}
+        body= {"query" :  "query { login { report(name: \"DeviceList\")}}"}
         content_length_header = str(len(body))
         headers = {
             'host': host,
@@ -98,6 +99,7 @@ def Full_Account(key_id,key_secret_id,size=1000):
             for service in device["services"]:
                 if service["name"] == "VNC":
                     has_VNC_service=True
+#                    has_VNC_service=True
 
 
 
@@ -107,10 +109,20 @@ def Full_Account(key_id,key_secret_id,size=1000):
                internalAddressStr=""
                internalAddressType=""
             else:
-               internalAddress=device["endpoint"]["internalAddress"]
-               externalAddress=device["endpoint"]["externalAddress"]
-               internalAddressStr=internalAddress[:internalAddress.index(":")]
-               internalAddressType=""
+               try:
+                   internalAddress=device["endpoint"]["internalAddress"]
+                   internalAddressStr=internalAddress[:internalAddress.index(":")]
+                   internalAddressType=""
+               except:
+                   internalAddress=None
+                   internalAddressStr=""
+                   internalAddressType=""
+
+               try:
+                   externalAddress=device["endpoint"]["externalAddress"]
+               except:
+                   externalAddress=None
+
 #               print (device["endpoint"]["name"])
 
             if internalAddress != None:
@@ -128,10 +140,13 @@ def Full_Account(key_id,key_secret_id,size=1000):
                 else:
                     if internalIP.is_private:
                         internalAddressType="Private"
+            try:
+                eMail=device["owner"]["email"]
+            except:
+                eMail="None"
 
-
-#                print(internalAddressStr)
-            print(device["name"],device["enabled"],device["id"],device["owner"]["email"],device["created"],device["lastReported"],len(device["services"]),device["owner"],internalAddressType,internalAddressStr,has_VNC_service,sep=',')
+#            print(internalAddressStr)
+            print(device["name"],device["enabled"],device["id"],eMail,device["created"],device["lastReported"],len(device["services"]),device["owner"],internalAddressType,internalAddressStr,has_VNC_service,sep=',')
     #        if device["owner"]["email"].lower() != "civil-remot3it-provisioning-ug@trimble.com":
     #            print(device["name"],device["id"],device["owner"]["email"],device["created"],sep=',')
     #            invalid_emails+=1
@@ -149,7 +164,7 @@ def main():
        sys.stderr.write("Key Secret: {}\n".format(args["key_secret_id"]))
 
 
-   Full_Account(args["key_id"],args["key_secret_id"])
+   Full_Account(args["key_id"],args["key_secret_id"],size=800)
 
 
 if __name__ == '__main__':

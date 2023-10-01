@@ -2,7 +2,7 @@
 rm DeviceList.csv
 
 CRON=1
-VENV=venv/Requests_Sig/bin/activate
+VENV=$HOME/venv/Requests_Sig/bin/activate
 
 if [ ! -z "$VENV" ]
 then

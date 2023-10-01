@@ -25,9 +25,23 @@ A Set of Tools for interacting with the Remote.IT api set.
 
     * Redirect the output to a file using > or pipe it into Account Duplicates
 
-* RemoteIt-Account-Duplicates.Py
+ * RemoteIt-Account-Duplicates.Py
 
     * Takes the output of the FullAccount.py and checks if there are any devices with Duplicate Names.
+    * When there are duplicates it works out the most recent one and creates a script to delete the others, using RemoteIt-Delete.py
+   
+
+* FullAccountReport.Py
+
+    * Uses the graphql API report feature to download information on every device in the account
+
+    * Note that this using the Account Key ID and  Key Secret, which is different from what is used on the other tools
+
+    * Redirect the output to a file using > or pipe it into CSV Account Duplicates    
+
+* RemoteIt-ACSV-Duplicates.Py
+
+    * Takes the output of the FullAccountReport.py and checks if there are any devices with Duplicate Names.
     * When there are duplicates it works out the most recent one and creates a script to delete the others, using RemoteIt-Delete.py
 
 * RemoteIt-Delete.py

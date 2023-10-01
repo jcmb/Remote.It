@@ -13,7 +13,7 @@ import ipaddress
 try:
     from requests_http_signature import HTTPSignatureAuth
 except:
-    sys.exit("HTTPSignatureAuth is not installed. Install it using pip3 install requests-http-signature")
+    sys.exit("HTTPSignatureAuth is not installed. Install it using pip3 install requests_http_signature==v0.1.0")
 
 import http.client as http_client
 
@@ -72,6 +72,10 @@ def Full_Account(key_id,key_secret_id,size=1000):
             sys.exit(3)
 
         reply=response.json()
+#        with open("DeviceList.txt", "w") as f:
+#            f.write(response.text)
+#        pprint(reply)
+
         if "errors" in reply:
             sys.stderr.write("Error in Query\n")
             sys.stderr.write(reply)

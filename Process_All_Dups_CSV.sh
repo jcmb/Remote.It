@@ -1,6 +1,7 @@
 #!/bin/bash
 logger $0 Started
 rm DeviceList.csv
+cd /home/IBSS/Remote.It
 
 CRON=1
 VENV=$HOME/venv/Requests_Sig/bin/activate
@@ -17,6 +18,7 @@ logger $0 Getting Full Account
 
 if  [ $? != 0 ]
     then
+    logger $0 "Downloading of account data failed. Processing stopped"
     echo "Downloading of account data failed. Processing stopped"
     exit
 fi

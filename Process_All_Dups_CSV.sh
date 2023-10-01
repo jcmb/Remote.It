@@ -1,4 +1,5 @@
 #!/bin/bash
+logger $0 Started
 rm DeviceList.csv
 
 CRON=1
@@ -9,6 +10,9 @@ then
     source $VENV
 fi
 
+
+logger $0 Getting Full Account
+
 ./FullAccountReport.py @parameters/prod.key
 
 if  [ $? != 0 ]
@@ -16,6 +20,8 @@ if  [ $? != 0 ]
     echo "Downloading of account data failed. Processing stopped"
     exit
 fi
+
+logger $0 Computing Dups
 
 ./RemoteIt-CSV-Duplicates.py --CSV DeviceList.csv Production_Dups_To_Delete.csv
 
@@ -29,7 +35,11 @@ then
     read -n 1
 fi
 
+logger $0 Deleting
 
 ./RemoteIt-Delete.py  @parameters/RemoteIt.Params Production_Dups_To_Delete.csv
 #./Production_Dups_To_Delete.sh
 #./FullAccount.py  @parameters/prod.key > Production.csv
+
+logger $0 Finished
+

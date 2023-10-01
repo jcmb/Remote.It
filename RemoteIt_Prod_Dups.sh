@@ -15,4 +15,4 @@ echo "End of duplicates to delete"
 echo "Press any key to delete Duplicates. Ctrl-C to cancel"
 read -n 1
 ./Production_Dups_To_Delete.sh
-./FullAccount.py  @parameters/prod.key > Production.csv
+#./FullAccount.py  @parameters/prod.key > Production.csv

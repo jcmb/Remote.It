@@ -15,6 +15,7 @@ def get_args():
     parser.add_argument('outfile', type=argparse.FileType('w'))
 
     parser.add_argument("--CSV", help="Output Duplicates as a CSV file. Otherwise output as a delete script",action="store_true")
+
 #    parser.add_argument("--CSV", help="Output Duplicates as a CSV file",action="store_true")
     parser.add_argument("--Tell", "-T", help="Tell Settings",action="store_true")
     parser.add_argument("--Verbose","-v", help="Verbose",action="store_true")
@@ -76,7 +77,7 @@ def Check_For_Dups(infile):
     return(dups,reader.fieldnames)
 
 
-def Write_Dups_SH(outfile,dups,fieldnames):
+def Write_Dups_CSV(outfile,dups,fieldnames):
     writer = csv.DictWriter(outfile,fieldnames)
     writer.writeheader()
 
@@ -101,6 +102,7 @@ def main():
         pass
 
     (dups,fieldnames)=Check_For_Dups(args["infile"])
+
     if args["CSV"]:
         Write_Dups_CSV(args["outfile"],dups,fieldnames)
     else:

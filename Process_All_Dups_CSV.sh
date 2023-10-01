@@ -1,7 +1,15 @@
 #!/bin/bash
 rm DeviceList.csv
+
+CRON=1
+VENV=venv/Requests_Sig/bin/activate
+
+if [ ! -z "$VENV" ]
+then
+    source $VENV
+done
+
 ./FullAccountReport.py @parameters/prod.key
-CRON=
 
 if  [ $? != 0 ]
     then

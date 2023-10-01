@@ -30,6 +30,6 @@ then
 fi
 
 
-./RemoteIt-Delete.py  @RemoteIt.Params Production_Dups_To_Delete.csv
+./RemoteIt-Delete.py  @parameters/RemoteIt.Params Production_Dups_To_Delete.csv
 #./Production_Dups_To_Delete.sh
 #./FullAccount.py  @parameters/prod.key > Production.csv

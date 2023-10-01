@@ -49,7 +49,7 @@ class RemoteIt(object):
       }
       url = self.base_url +"user/login"
 
-      response = requests.post(url, data=json.dumps(body), headers=headers)
+      response = requests.post(url, data=json.dumps(body), headers=headers,timeout=30)
       response_body = response.json()
 #      pprint (response_body)
 
@@ -80,7 +80,7 @@ class RemoteIt(object):
 
       url = self.base_url + "device/find/by/name/"
 
-      response = requests.post(url, headers=headers, json={"devicestate":"all","devicename":model})
+      response = requests.post(url, headers=headers, json={"devicestate":"all","devicename":model},timeout=30)
       reply=response.json()
 
       self.log_reply(model,response.text)
@@ -229,7 +229,7 @@ class RemoteIt(object):
          if device["devicealias"] == "VNC":
             device["devicealias"] = hardware_id_details[device["hardwareid"]]["devicealias"] + " - VNC - Missing Device ID"
          if device["devicealias"].startswith(device_ids) :
-            if device["servicetitle"]=="Bulk Service" : 
+            if device["servicetitle"]=="Bulk Service" :
                 service_details[device["devicealias"]]=device
             else:
                 service_details[device["devicealias"]+":"+device["hardwareid"]]=device
@@ -266,9 +266,12 @@ class RemoteIt(object):
 #      print (headers)
 #      print (url)
 
-      response = requests.post(url, data=json.dumps(body), headers=headers)
+      response = requests.post(url, data=json.dumps(body), headers=headers,timeout=30)
       response_body = response.json()
+#      pprint(response_body)
 
-#<      pprint (response_body)
-      return(None)
+      result=False
+      if response_body != None:
+         result = response_body["status"]=="true"
+      return(result)
 

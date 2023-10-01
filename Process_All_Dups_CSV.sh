@@ -7,7 +7,7 @@ VENV=venv/Requests_Sig/bin/activate
 if [ ! -z "$VENV" ]
 then
     source $VENV
-done
+fi
 
 ./FullAccountReport.py @parameters/prod.key
 

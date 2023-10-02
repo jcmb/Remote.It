@@ -48,3 +48,7 @@ A Set of Tools for interacting with the Remote.IT api set.
     * Deletes a devices from the account with the given Name that has the HW ID.
     * It will not delete a device that is only in the account once, unless you use the --Force option
     * Note that this API is not officially documented by Remote.It, but it is the same one the Web Page uses
+
+* RemoteIt-Account-Summary.py
+	*	Takes the FullAccountReport and computes a summary for the account, based on device model types.
+	*  If a date is provided then only devices that have connected since then will be included in the summary

@@ -120,3 +120,4 @@ parameters/RemoteIt.ini
 *.key
 *.csv
 RemoteIt.Params
+*.txt

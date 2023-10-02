@@ -3,6 +3,17 @@ logger $0 Started
 rm DeviceList.csv
 cd /home/IBSS/Remote.It
 
+if [ ! -d Reports/Full ]
+then
+  mkdir -p Reports/Full
+fi
+
+if [ ! -d Reports/Date ]
+then
+  mkdir -p Reports/Date
+fi
+
+
 CRON=1
 VENV=$HOME/venv/Requests_Sig/bin/activate
 
@@ -40,6 +51,12 @@ fi
 logger $0 Deleting
 
 ./RemoteIt-Delete.py  @parameters/RemoteIt.Params Production_Dups_To_Delete.csv
+
+current_date=$(date +"%Y-%m-%d")
+current_month=$(date +"%Y-%m-01")
+./RemoteIt-Account-Summary.py DeviceList.csv > Reports/Full/$current_date.txt
+./RemoteIt-Account-Summary.py DeviceList.csv $current_month> Reports/Date/$current_date.txt
+
 #./Production_Dups_To_Delete.sh
 #./FullAccount.py  @parameters/prod.key > Production.csv
 

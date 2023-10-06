@@ -52,3 +52,6 @@ A Set of Tools for interacting with the Remote.IT api set.
 * RemoteIt-Account-Summary.py
 	*	Takes the FullAccountReport and computes a summary for the account, based on device model types.
 	*  If a date is provided then only devices that have connected since then will be included in the summary
+
+* DeviceList.py
+	* 	Checks the account for errors, such as devices with an incorrect number of services.

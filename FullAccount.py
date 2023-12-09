@@ -39,13 +39,13 @@ def Full_Account(key_id,key_secret_id,size=1000):
     hasMore=True
     last=""
     items_so_far=0
-    print("Name", "Enabled","ID", "Owner", "Created", "LastReported","Services","eMail","InternalIPType","InternalIP","VNCProblem",sep=',')
+    print("Name", "Enabled","ID", "Owner", "Created", "LastReported","Services","eMail","InternalIPType","InternalIP","ExternalIP",sep=',')
 
     while hasMore:
 
     #    body = {"query": "query { login { devices (size : 10, after : \"" + last + "\" sort: \"created\") { hasMore total  last items { id  name owner { email } created lastReported}}}}"}
-#        body = {"query": "query { login { devices (size : " + str(size) + " after : \"" + last + "\" sort: \"created\") { hasMore total  last items { enabled platform id  name owner { email } created lastReported services {title  enabled state name} endpoint {name internalAddress externalAddress}}}}}"}
-        body= {"query" :  "query { login { report(name: \"DeviceList\")}}"}
+        body = {"query": "query { login { devices (size : " + str(size) + " after : \"" + last + "\" sort: \"created\") { hasMore total  last items { enabled platform id  name owner { email } created lastReported services {title  enabled state name} endpoint {name internalAddress externalAddress}}}}}"}
+#        body= {"query" :  "query { login { report(name: \"DeviceList\")}}"}
         content_length_header = str(len(body))
         headers = {
             'host': host,
@@ -150,7 +150,7 @@ def Full_Account(key_id,key_secret_id,size=1000):
                 eMail="None"
 
 #            print(internalAddressStr)
-            print(device["name"],device["enabled"],device["id"],eMail,device["created"],device["lastReported"],len(device["services"]),device["owner"],internalAddressType,internalAddressStr,has_VNC_service,sep=',')
+            print(device["name"],device["enabled"],device["id"],eMail,device["created"],device["lastReported"],len(device["services"]),eMail,internalAddressType,internalAddressStr,externalAddress,sep=',')
     #        if device["owner"]["email"].lower() != "civil-remot3it-provisioning-ug@trimble.com":
     #            print(device["name"],device["id"],device["owner"]["email"],device["created"],sep=',')
     #            invalid_emails+=1

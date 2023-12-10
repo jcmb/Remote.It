@@ -1,5 +1,4 @@
-File Edit Options Buffers Tools Sh-Script Help                                                                                                     
-#!/bin/bash                                                                                                                                        
+#!/bin/bash
 echo "Content-type: text/html"
 echo ""
 

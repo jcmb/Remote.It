@@ -122,7 +122,7 @@ def Full_Account(key_id,key_secret_id,HTML,size=1000):
             if HTML:
                if active:
                    HTML_Unit.output_table_row(sys.stdout, [
-                           '<a href="/cgi-bin/remote_screen_connect?Address={}">{}</a>'.format(urllib.parse.quote(service_id), device["name"]),
+                           '<a href="/cgi-bin/remote_screen_connect?Address={}&IP=0.0.0.0">{}</a>'.format(urllib.parse.quote(service_id), device["name"]),
                    active,
                    device["id"],
                    device["created"],device["lastReported"],len(device["services"]),has_Screen_service,device["enabled"]])

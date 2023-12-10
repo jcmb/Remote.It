@@ -229,11 +229,13 @@ def main():
    remoteIt=RemoteIt(args["username"],args["password"],args["dev_key"],args["log_dir"])
 
    if not remoteIt.connect_to_remote_it():
-      sys.exit("Connecting to Remote.it failed")
+      sys.exit("Connecting to Remote.it failed. Reason {}".format(remoteIt.reason))
+
+   devices_details=remoteIt.get_devices(None)
 
    devices_details=remoteIt.get_devices(args["model"])
 
-#   pprint (devices_details)
+   pprint (devices_details)
 
    if devices_details==None:
       sys.exit("No Devices in the Remote.it account")

@@ -1,0 +1,23 @@
+#!/bin/bash 
+SERIAL=`echo "$QUERY_STRING" | sed -n 's/^.*SERIAL=\([^&]*\).*$/\1/p' | sed "s/%20//g" | sed "s/\+//g"`
+MODEL=`echo "$QUERY_STRING" | sed -n 's/^.*MODEL=\([^&]*\).*$/\1/p' | sed "s/%20//g" | sed "s/\+//g"`
+SERIAL=${SERIAL#$MODEL-}
+#Remove The Model prefix if it in the serial
+echo "Content-type: text/html"
+echo ""
+logger "Remote Status $MODEL-$SERIAL"
+if [ "$MODEL" == "SNM941" ]
+then
+   ./RemoteIt-Status.py @prod.params --html --all --services $MODEL-$SERIAL
+else
+   if [ "$MODEL" == "EC520" ]
+      then
+      ./RemoteIt-Status.py @prod.params --html --all --services  $MODEL-$SERIAL EC520-W-$SERIAL
+   else  
+       ./RemoteIt-Status.py @prod.params --html --all --services  $MODEL-$SERIAL
+       echo "<H1>Provisioning Account<H1>"
+       ./RemoteIt-Status.py @provisioning.params --html --all --services  $MODEL-$SERIAL
+   fi
+fi
+
+

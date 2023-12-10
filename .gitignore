@@ -121,3 +121,4 @@ parameters/RemoteIt.ini
 *.csv
 RemoteIt.Params
 *.txt
+*.params

@@ -1,0 +1,5 @@
+#!/bin/bash
+echo "Content-type: text/html"
+echo ""
+logger "Remote Screnn"
+./ScreenViewAccount.py @screen.key --html

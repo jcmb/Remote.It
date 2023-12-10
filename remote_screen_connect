@@ -1,0 +1,14 @@
+File Edit Options Buffers Tools Sh-Script Help                                                                                                     
+#!/bin/bash                                                                                                                                        
+echo "Content-type: text/html"
+echo ""
+
+CONNECTION="ScreenView"
+DEVICE_ADDRESS=`echo "$QUERY_STRING" | sed -n 's/^.*Address=\([^&]*\).*$/\1/p' | sed "s/%20/ /g" | sed "s/%3A/:/g"`
+IP=`echo "$QUERY_STRING" | sed -n 's/^.*IP=\([^&]*\).*$/\1/p' | sed "s/%20/ /g" | sed "s/%3A/:/g"`
+if [ -z "$IP" ]
+   then
+       IP=$REMOTE_ADDR
+       fi
+/usr/lib/cgi-bin/RemoteConnection.py @screen.params "$DEVICE_ADDRESS"  "$CONNECTION" --IP $IP
+

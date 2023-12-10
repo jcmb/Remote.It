@@ -27,6 +27,7 @@ class RemoteIt(object):
       self.token=None
       self.serivce_token=None
       self.verbose=verbose
+      self.reason=None
 
       if self.verbose:
          logging.getLogger("requests").setLevel(logging.DEBUG)
@@ -53,8 +54,13 @@ class RemoteIt(object):
       response_body = response.json()
 #      pprint (response_body)
 
-      self.token=response_body["token"]
-      self.service_token=response_body["service_token"]
+      if "token" in response_body:
+          self.token=response_body["token"]
+          self.service_token=response_body["service_token"]
+          self.reason=""
+      else:
+          self.token=None
+          self.reason=response_body["reason"]
       return(self.token!=None)
 
    def log_reply(self,model,reply):
@@ -69,6 +75,30 @@ class RemoteIt(object):
       log=open(log_file_name,"w")
       log.write(reply)
       log.close()
+
+
+   def get_all_devices(self):
+
+      headers = {
+         "developerkey": self.dev_key,
+         "token": self.token,
+         "Content-Type": "application/json"
+      }
+
+      url = self.base_url + "device/find/by/name/"
+
+      response = requests.post(url, headers=headers, json={"devicestate":"all"},timeout=30)
+      reply=response.json()
+
+      pprint(reply)
+
+      self.log_reply("All",response.text)
+
+      if reply["status"]=='false':
+         return(None)
+      else:
+         return (reply)
+
 
    def get_devices_by_name(self,model):
 
@@ -85,7 +115,7 @@ class RemoteIt(object):
 
       self.log_reply(model,response.text)
 
-#      pprint(reply)
+      pprint(reply)
       if reply["status"]=='false':
          return(None)
       else:
@@ -193,7 +223,8 @@ class RemoteIt(object):
                devices_details +=serial_details["devices"]
 #            pprint (len(devices_details))
       else:
-         devices_details=get_devices(args["dev_key"],token)["devices"]
+         devices_details=self.get_all_devices()
+#         devices_details=get_devices(args["dev_key"],token)["devices"]
       return (devices_details)
 
 

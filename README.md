@@ -39,7 +39,7 @@ A Set of Tools for interacting with the Remote.IT api set.
 
     * Redirect the output to a file using > or pipe it into CSV Account Duplicates    
 
-* RemoteIt-ACSV-Duplicates.Py
+* RemoteIt-CSV-Duplicates.Py
 
     * Takes the output of the FullAccountReport.py and checks if there are any devices with Duplicate Names.
     * When there are duplicates it works out the most recent one and creates a script to delete the others, using RemoteIt-Delete.py
@@ -55,3 +55,28 @@ A Set of Tools for interacting with the Remote.IT api set.
 
 * DeviceList.py
 	* 	Checks the account for errors, such as devices with an incorrect number of services.
+
+	
+* ScreenViewAccount.Py
+
+    * Uses the graphql API to download information on every device in the account reports on if it has the ScreenView service.
+
+    * Note that this using the Account Key ID and  Key Secret, which is different from what is used on the other tools
+    
+    * If the HTML ption is provided then a HTML format output will be created. If the device is active a link will be included allowing for the service to be connected to. This calls remote_screen_command
+
+    * Redirect the output to a file using > 
+
+* Remote_Screen
+
+	CGI script that displays the account and allows connections
+
+* remote_screen_connect
+
+	CGI script that does the connection to a ScreenView session
+	
+*	Remote_Status
+
+	CGI script that is the basis or the general display 	
+
+   

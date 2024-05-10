@@ -63,6 +63,10 @@ def delete_device (remoteIt,Device_ID, HW_ID, Force, DryRun, Verbose):
    remotes=remoteIt.get_devices_by_name(Device_ID)
    Found_HW_ID=False
    number_items=0
+   if remotes == None:
+      sys.stdout.write("{} Failed to get data\n".format(Device_ID))
+      return(3)
+
    for device in remotes["devices"]:
       if device["servicetitle"] == "Bulk Service":
          number_items+=1

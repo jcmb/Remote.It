@@ -115,11 +115,16 @@ class RemoteIt(object):
 
       self.log_reply(model,response.text)
 
-      pprint(reply)
-      if reply["status"]=='false':
-         return(None)
+#      pprint(reply)
+
+      if "status" in reply:
+          if reply["status"]=='false':
+              return(None)
+          else:
+              return (reply)
       else:
-         return (reply)
+          return(None)
+
 
    def get_device_ids (self,devices_details, serials):
       active_devices=set()

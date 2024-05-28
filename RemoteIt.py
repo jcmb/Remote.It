@@ -50,7 +50,7 @@ class RemoteIt(object):
       }
       url = self.base_url +"user/login"
 
-      response = requests.post(url, data=json.dumps(body), headers=headers,timeout=30)
+      response = requests.post(url, data=json.dumps(body), headers=headers,timeout=60)
       response_body = response.json()
 #      pprint (response_body)
 

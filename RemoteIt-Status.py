@@ -11,6 +11,8 @@ import logging
 import cgitb
 #cgitb.enable()
 
+
+
 import collections
 
 from JCMBSoftPyLib import HTML_Unit
@@ -29,6 +31,8 @@ def get_args():
    parser.add_argument("--units", help="Write Units file in the temp directory",action="store_true")
    parser.add_argument("--log", help="Directory store the replies from the server in that folder")
    parser.add_argument("--nolinks", help="Dont provide links to connect to the devices",action="store_true")
+   parser.add_argument("--verbose", "-v", help="Disaplay verbose operational information",action="store_true")
+
 #   parser.add_argument("--preregistered", help="The device was activated into the platform using the pre-registration system",action="store_true")
 
    parser.add_argument("username", help="Account User name",)
@@ -48,12 +52,14 @@ def get_args():
    args["password"]=parser.password
    args["dev_key"]=parser.key
    args["nolinks"]=parser.nolinks
+   args["verbose"]=parser.verbose
    if parser.Tell:
       sys.stderr.write("Model: {}\n".format(parser.model))
       sys.stderr.write("All: {}\n".format(parser.all))
       sys.stderr.write("Services: {}\n".format(parser.services))
       sys.stderr.write("HTML: {}\n".format(parser.html))
       sys.stderr.write("UNITS: {}\n".format(parser.units))
+      sys.stderr.write("Verbose: {}\n".format(parser.verbose))
 
 
 #CLI   args["CLI"]=not parser.preregistered
@@ -90,11 +96,10 @@ def output_device_info (devices_details,device_ids,all_devices):
 #         print(device["servicetitle"])
          if device["devicealias"].startswith(device_ids):
             if device["devicestate"] =="active":
-         #      pprint (device)
-               print ("    {:35s} {:11s} {:6s} {:16s} {:16s} ".format(device["deviecealias"],device["servicetitle"],device["devicestate"],device["lastinternalip"],device["devicelastip"],device["deviceaddress"]))
+#               pprint (device)
+               print ("    {:35s} {:11s} {:6s} {:16s} {:16s} ".format(device["devicealias"],device["servicetitle"],device["devicestate"],device["lastinternalip"],device["devicelastip"],device["deviceaddress"]))
 #      print()
 
-   print()
    if all_devices:
       for device in devices_details:
          if device["devicealias"].startswith(device_ids):
@@ -150,11 +155,15 @@ def output_device_info_html (HTML_File,services_details,device_ids,all_devices,a
 
       device_details=services_details[current_device]
 
+#      pprint (device_details)
+
       if device_details["devicestate"] =="active" or all_services:
          HTML_File.write("<h3>{}</h3>".format(current_device))
-         HTML_Unit.output_table_header(HTML_File,current_device,"{} connected at {} from {}".format(current_device,device_details["lastcontacted"],device_details["devicelastip"]),["Service Name", "State", "Type", "Device Address"])
+         HTML_Unit.output_table_header(HTML_File,current_device,"{} connected at {} from {}".format(current_device,device_details["lastcontacted"],device_details["devicelastip"]),["Service Name", "State", "Type", "Device Address", "Last Contacted", "Created"])
 
          device_prefix=current_device
+
+#         pprint(services_details)
 
          for service_index in services_details:
 #            print ("Service")
@@ -162,13 +171,14 @@ def output_device_info_html (HTML_File,services_details,device_ids,all_devices,a
 #            print (device_prefix)
 #            print (services_details[service_index])
 
-            if services_details[service_index]["devicealias"].startswith(device_prefix):
+            if services_details[service_index]["devicealias"].startswith(device_prefix) or \
+               services_details[service_index]["hardwareid"] == device_details["hardwareid"]:
 #            and (services_details[service_index]["devicealias"] != device_prefix):
 # Only services that are not the bulk service get printed. The Bulk is the device name
                device=services_details[service_index]
 #               print(device["devicealias"])
-               device["devicealias"]=device["devicealias"].replace(device_prefix+" - ","")
-               device["devicealias"]=device["devicealias"].replace(device_prefix+"_","")
+#               device["devicealias"]=device["devicealias"].replace(device_prefix+" - ","")
+#               device["devicealias"]=device["devicealias"].replace(device_prefix+"_","")
 #               print(device["devicealias"])
 
                if all_services:
@@ -178,7 +188,9 @@ def output_device_info_html (HTML_File,services_details,device_ids,all_devices,a
                            device["devicealias"],
                            device["devicestate"],
                            device["servicetitle"],
-                           device["deviceaddress"]])
+                           device["deviceaddress"],
+                           device["lastcontacted"],
+                           device["createdate"]])
                      else:
 #                        print(device["devicealias"])
                         if device["devicealias"].endswith("-VNC") :
@@ -186,20 +198,26 @@ def output_device_info_html (HTML_File,services_details,device_ids,all_devices,a
                               '<a href="/cgi-bin/remote_connect?Address={}&Type={}">{}</a>'.format(urllib.parse.quote(device["deviceaddress"]), "VNC", device["devicealias"]),
                               device["devicestate"],
                               device["servicetitle"],
-                              device["deviceaddress"]])
+                              device["deviceaddress"],
+                              device["lastcontacted"],
+                              device["createdate"]])
                         else:
                            HTML_Unit.output_table_row(HTML_File,[
                               '<a href="/cgi-bin/remote_connect?Address={}&Type={}">{}</a>'.format(urllib.parse.quote(device["deviceaddress"]), urllib.parse.quote(device["servicetitle"]), device["devicealias"]),
                               device["devicestate"],
                               device["servicetitle"],
-                              device["deviceaddress"]])
+                              device["deviceaddress"],
+                              device["lastcontacted"],
+                              device["createdate"]])
 
                   else:
                      HTML_Unit.output_table_row(HTML_File,[
                         device["devicealias"],
                         device["devicestate"],
                         device["servicetitle"],
-                        device["deviceaddress"]])
+                        device["deviceaddress"],
+                        device["lastcontacted"],
+                        device["createdate"]])
                else:
                   if device["devicestate"] =="active":
                      if nolinks:
@@ -207,13 +225,17 @@ def output_device_info_html (HTML_File,services_details,device_ids,all_devices,a
                            device["devicealias"],
                            device["devicestate"],
                            device["servicetitle"],
-                           device["deviceaddress"]])
+                           device["deviceaddress"],
+                           device["lastcontacted"],
+                           device["createdate"]])
                      else:
                         HTML_Unit.output_table_row(HTML_File,[
                            '<a href="/cgi-bin/remote_connect?Address={}&Type={}">{}</a>'.format(urllib.parse.quote(device["deviceaddress"]), urllib.parse.quote(device["servicetitle"]), device["devicealias"]),
                            device["devicestate"],
                            device["servicetitle"],
-                           device["deviceaddress"]])
+                           device["deviceaddress"],
+                           device["lastcontacted"],
+                           device["createdate"]])
          HTML_Unit.output_table_footer(HTML_File)
          HTML_File.write("<br/>")
 
@@ -229,16 +251,38 @@ def main():
    remoteIt=RemoteIt(args["username"],args["password"],args["dev_key"],args["log_dir"])
 
    if not remoteIt.connect_to_remote_it():
-      sys.exit("Connecting to Remote.it failed. Reason {}".format(remoteIt.reason))
+      if args["html"]:
+         HTML_File=sys.stdout;
+         HTML_Unit.output_html_header(HTML_File,"Remote Devices Error")
+         HTML_Unit.output_html_body(HTML_File)
+         HTML_File.write("Connecting to Remote.it failed. Reason {}<br>\n".format(remoteIt.reason))
+         HTML_File.write("Generated: {}".format(datetime.now()))
+         HTML_Unit.output_html_footer(HTML_File,[])
+         sys.exit(0)
+      else:
+         sys.exit("Connecting to Remote.it failed. Reason {}".format(remoteIt.reason))
 
-   devices_details=remoteIt.get_devices(None)
+#   devices_details=remoteIt.get_devices(None)
 
-   devices_details=remoteIt.get_devices(args["model"])
+   if args["verbose"] :
+      print("Getting information on " + str(args["model"]))
 
-   pprint (devices_details)
+   devices_details=remoteIt.get_devices(args["model"],verbose=args["verbose"])
+
+   if args["verbose"] :
+       pprint (devices_details)
 
    if devices_details==None:
-      sys.exit("No Devices in the Remote.it account")
+      if args["html"]:
+         HTML_File=sys.stdout;
+         HTML_Unit.output_html_header(HTML_File,"Remote Devices Error")
+         HTML_Unit.output_html_body(HTML_File)
+         HTML_File.write("No Devices in the Remote.it account<br>\n")
+         HTML_File.write("Generated: {}".format(datetime.now()))
+         HTML_Unit.output_html_footer(HTML_File,[])
+         sys.exit(0)
+      else:
+         sys.exit("No Devices in the Remote.it account")
 
    active_devices,inactive_devices=remoteIt.get_device_ids (devices_details,args["model"])
 

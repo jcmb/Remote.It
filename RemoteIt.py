@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import requests
 
+
 import logging
 
 import json
@@ -87,10 +88,10 @@ class RemoteIt(object):
 
       url = self.base_url + "device/find/by/name/"
 
-      response = requests.post(url, headers=headers, json={"devicestate":"all"},timeout=30)
+      response = requests.post(url, headers=headers, json={"devicestate":"all"},timeout=45)
       reply=response.json()
 
-      pprint(reply)
+#      pprint(reply)
 
       self.log_reply("All",response.text)
 
@@ -100,7 +101,7 @@ class RemoteIt(object):
          return (reply)
 
 
-   def get_devices_by_name(self,model):
+   def get_devices_by_name(self,model,verbose=False):
 
       headers = {
          "developerkey": self.dev_key,
@@ -110,12 +111,21 @@ class RemoteIt(object):
 
       url = self.base_url + "device/find/by/name/"
 
-      response = requests.post(url, headers=headers, json={"devicestate":"all","devicename":model},timeout=30)
-      reply=response.json()
+
+      if verbose:
+         print(model)
+
+      try:
+         response = requests.post(url, headers=headers, json={"devicestate":"all","devicename":model},timeout=45)
+         reply=response.json()
+      except:
+          return(None)
+
 
       self.log_reply(model,response.text)
 
-#      pprint(reply)
+      if verbose:
+          pprint(reply)
 
       if "status" in reply:
           if reply["status"]=='false':
@@ -214,16 +224,18 @@ class RemoteIt(object):
       return(active_services)
 
 
-   def get_devices(self,serials):
+   def get_devices(self,serials,verbose=False):
       devices_details=[]
       if serials:
          for serial in serials:
-#            print (serial)
+            if verbose:
+                print (serial)
             serial_details=self.get_devices_by_name(serial)
-#            pprint (serial_details)
+            if verbose:
+               pprint (serial_details)
             if serial_details==None:
-               logging.critical("The Remote.it server did not return data for {}. Normally this is too many results for this prefix.".format(serial))
-               devices_details=None
+               logging.critical("The Remote.it server did not return data for {}. This may be becuase there are too many results for this prefix.".format(serial))
+#               devices_details=None
             else:
                devices_details +=serial_details["devices"]
 #            pprint (len(devices_details))
@@ -259,18 +271,25 @@ class RemoteIt(object):
    def get_service_details_with_dups(self,devices_details, device_ids):
       service_details={}
       hardware_id_details={}
+#      print("Start Device Details")
+#      pprint(devices_details)
+#      print("End Device Details")
       for device in devices_details:
+
 #         pprint(device)
 #         print (device["hardwareid"] in hardware_id_details)
-         if device["devicealias"] == "VNC":
-            device["devicealias"] = hardware_id_details[device["hardwareid"]]["devicealias"] + " - VNC - Missing Device ID"
-         if device["devicealias"].startswith(device_ids) :
+#         if device["devicealias"] == "VNC":
+#            device["devicealias"] = hardware_id_details[device["hardwareid"]]["devicealias"] + " - VNC - Missing Device ID"
+
+         if device["devicealias"].startswith(device_ids)  or  device["hardwareid"] in hardware_id_details:
             if device["servicetitle"]=="Bulk Service" :
                 service_details[device["devicealias"]]=device
             else:
                 service_details[device["devicealias"]+":"+device["hardwareid"]]=device
             hardware_id_details[device["hardwareid"]]=device
+#      print("Start Service Details")
 #      print(service_details)
+#      print("End Service Details")
       return(service_details)
 
 
@@ -302,7 +321,7 @@ class RemoteIt(object):
 #      print (headers)
 #      print (url)
 
-      response = requests.post(url, data=json.dumps(body), headers=headers,timeout=30)
+      response = requests.post(url, data=json.dumps(body), headers=headers,timeout=45)
       response_body = response.json()
 #      pprint(response_body)
 

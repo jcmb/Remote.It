@@ -75,8 +75,13 @@ def Full_Account_Report(key_id,key_secret_id,size=1000):
             sys.stderr.write("Error in Request. Try: {}\n".format(attempt_count))
             sys.stderr.write("Elapsed time: {:.2f} seconds\n".format(elapsed_time))
             sys.stderr.write(response.text)
-            sys.stderr.write("\nRetry in 10 seconds\n".format(elapsed_time))
+            attempt_count+=1
+            if attempt_count< 5:
+               sys.stderr.write("\nRetry in 10 seconds\n".format(elapsed_time))
+            else:
+                sys.exit("Aborting")
             sys.stderr.flush()
+            
 
             time.sleep(10)
         else:

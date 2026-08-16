@@ -16,6 +16,7 @@ def get_args():
 
     parser.add_argument("--CSV", help="Output Duplicates as a CSV file. Otherwise output as a delete script",action="store_true")
     parser.add_argument("--EC520", help="Treat EC520- and EC520-W- names with the same serial as duplicates",action="store_true")
+    parser.add_argument("--MP1087", help="Treat MP1086- and MP1087- names with the same serial as duplicates",action="store_true")
 
 #    parser.add_argument("--CSV", help="Output Duplicates as a CSV file",action="store_true")
     parser.add_argument("--Tell", "-T", help="Tell Settings",action="store_true")
@@ -23,14 +24,14 @@ def get_args():
     parser = parser.parse_args()
     return (vars(parser))
 
-def canonical_name(name, ec520):
-    if not ec520:
-        return name
-    if name.startswith("EC520-W-"):
+def canonical_name(name, ec520, mp1087):
+    if ec520 and name.startswith("EC520-W-"):
         return "EC520-" + name[len("EC520-W-"):]
+    if mp1087 and name.startswith("MP1086-"):
+        return "MP1087-" + name[len("MP1086-"):]
     return name
 
-def Check_For_Dups(infile,ec520):
+def Check_For_Dups(infile,ec520,mp1087):
     reader = csv.DictReader(infile)
     devices={}
     dups=[]
@@ -44,7 +45,7 @@ def Check_For_Dups(infile,ec520):
 #            print(each_row)
             sys.exit("Error: Row does not have 11 fields")
 
-        name_key=canonical_name(each_row["Name"],ec520)
+        name_key=canonical_name(each_row["Name"],ec520,mp1087)
 
         if name_key in devices:
 #            pprint(devices[name_key])
@@ -111,7 +112,7 @@ def main():
     if args["Tell"]:
         pass
 
-    (dups,fieldnames)=Check_For_Dups(args["infile"],args["EC520"])
+    (dups,fieldnames)=Check_For_Dups(args["infile"],args["EC520"],args["MP1087"])
 
     if args["CSV"]:
         Write_Dups_CSV(args["outfile"],dups,fieldnames)

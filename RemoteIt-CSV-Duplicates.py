@@ -17,20 +17,21 @@ def get_args():
     parser.add_argument("--CSV", help="Output Duplicates as a CSV file. Otherwise output as a delete script",action="store_true")
     parser.add_argument("--Bulk", help="Only Process bulk service items.",action="store_true")
     parser.add_argument("--EC520", help="Treat EC520- and EC520-W- names with the same serial as duplicates",action="store_true")
+    parser.add_argument("--MP1087", help="Treat MP1086- and MP1087- names with the same serial as duplicates",action="store_true")
 
     parser.add_argument("--Tell", "-T", help="Tell Settings",action="store_true")
     parser.add_argument("--Verbose","-v", help="Verbose",action="store_true")
     parser = parser.parse_args()
     return (vars(parser))
 
-def canonical_name(name, ec520):
-    if not ec520:
-        return name
-    if name.startswith("EC520-W-"):
+def canonical_name(name, ec520, mp1087):
+    if ec520 and name.startswith("EC520-W-"):
         return "EC520-" + name[len("EC520-W-"):]
+    if mp1087 and name.startswith("MP1086-"):
+        return "MP1087-" + name[len("MP1086-"):]
     return name
 
-def Check_For_Dups(infile,Bulk,ec520):
+def Check_For_Dups(infile,Bulk,ec520,mp1087):
     reader = csv.DictReader(infile)
     devices={}
     dups=[]
@@ -45,7 +46,7 @@ def Check_For_Dups(infile,Bulk,ec520):
         if each_row["title"] != "Bulk Service":
             continue
 
-        name_key=canonical_name(each_row["name"],ec520)
+        name_key=canonical_name(each_row["name"],ec520,mp1087)
 
         if name_key in devices:
 #            pprint(devices[each_row["Name"]])
@@ -113,7 +114,7 @@ def main():
     if args["Tell"]:
         pass
 
-    (dups,fieldnames)=Check_For_Dups(args["infile"],args["Bulk"],args["EC520"])
+    (dups,fieldnames)=Check_For_Dups(args["infile"],args["Bulk"],args["EC520"],args["MP1087"])
     if args["CSV"]:
         Write_Dups_CSV(args["outfile"],dups,fieldnames)
     else:

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-import requests
-
-
-import logging
-
+import collections
 import json
-from pprint import pprint
+import logging
+import os
 
+import requests
 from datetime import datetime
+from pprint import pprint
 
 try:
     import http.client as http_client
@@ -26,7 +25,7 @@ class RemoteIt(object):
       self.dev_key=dev_key
       self.log_dir=logging_dir
       self.token=None
-      self.serivce_token=None
+      self.service_token=None
       self.verbose=verbose
       self.reason=None
 
@@ -118,8 +117,9 @@ class RemoteIt(object):
       try:
          response = requests.post(url, headers=headers, json={"devicestate":"all","devicename":model},timeout=45)
          reply=response.json()
-      except:
-          return(None)
+      except requests.RequestException as exc:
+         logging.warning("Remote.it request failed for %s: %s", model, exc)
+         return(None)
 
 
       self.log_reply(model,response.text)
@@ -147,7 +147,9 @@ class RemoteIt(object):
          for device in devices_details:
             if device["servicetitle"] == "Bulk Service":
                if device["devicestate"] == "active":
-                  devices+= [device["devicealias"]]
+                  active_devices.add(device["devicealias"])
+               else:
+                  inactive_devices.add(device["devicealias"])
       else:
          for device in devices_details:
             if device["devicealias"].startswith(serials):
@@ -188,18 +190,6 @@ class RemoteIt(object):
             de_dupped_services[service["devicealias"]]=service
 #      pprint(list(de_dupped_services.values()))
       return(de_dupped_services)
-
-      service_names=collections.defaultdict(int)
-      active_service_names=collections.defaultdict(int)
-      service_ids=collections.defaultdict(int)
-
-      for service in device_details:
-         service_names[service["devicealias"]]+=1
-         if service["devicestate"]=="active":
-            active_service_names[service["devicealias"]]+=1
-         service_ids[service["deviceaddress"]]+=1
-
-      return(service_names,active_service_names,service_ids)
 
 
    def remove_device_prefix(self,device_details,DeviceId):

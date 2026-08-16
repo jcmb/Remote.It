@@ -16,13 +16,21 @@ def get_args():
 
     parser.add_argument("--CSV", help="Output Duplicates as a CSV file. Otherwise output as a delete script",action="store_true")
     parser.add_argument("--Bulk", help="Only Process bulk service items.",action="store_true")
+    parser.add_argument("--EC520", help="Treat EC520- and EC520-W- names with the same serial as duplicates",action="store_true")
 
     parser.add_argument("--Tell", "-T", help="Tell Settings",action="store_true")
     parser.add_argument("--Verbose","-v", help="Verbose",action="store_true")
     parser = parser.parse_args()
     return (vars(parser))
 
-def Check_For_Dups(infile,Bulk):
+def canonical_name(name, ec520):
+    if not ec520:
+        return name
+    if name.startswith("EC520-W-"):
+        return "EC520-" + name[len("EC520-W-"):]
+    return name
+
+def Check_For_Dups(infile,Bulk,ec520):
     reader = csv.DictReader(infile)
     devices={}
     dups=[]
@@ -37,8 +45,9 @@ def Check_For_Dups(infile,Bulk):
         if each_row["title"] != "Bulk Service":
             continue
 
+        name_key=canonical_name(each_row["name"],ec520)
 
-        if each_row["name"] in devices:
+        if name_key in devices:
 #            pprint(devices[each_row["Name"]])
 #            if each_row["LastReported"] == "None":
 #                last_reported=None
@@ -61,21 +70,21 @@ def Check_For_Dups(infile,Bulk):
 #                devices[each_row["Name"]]=each_row
 
             last_created=datetime.strptime(each_row["created"],"%Y-%m-%dT%H:%M:%S.%f%z")
-            previous_last_created=datetime.strptime(devices[each_row["name"]]["created"],"%Y-%m-%dT%H:%M:%S.%f%z")
+            previous_last_created=datetime.strptime(devices[name_key]["created"],"%Y-%m-%dT%H:%M:%S.%f%z")
 
             # Here we have two records, at least one of them is not None
 
             if last_created > previous_last_created: #Newer than the last one, so replace it
-                dups.append(devices[each_row["name"]])
+                dups.append(devices[name_key])
 #                writer.writerow(devices[each_row["Name"]])
-                devices[each_row["name"]]=each_row
+                devices[name_key]=each_row
             else:
 #                writer.writerow(each_row)
                 dups.append(each_row)
 
 
         else:
-            devices[each_row["name"]]=each_row
+            devices[name_key]=each_row
     return(dups,reader.fieldnames)
 
 
@@ -104,7 +113,7 @@ def main():
     if args["Tell"]:
         pass
 
-    (dups,fieldnames)=Check_For_Dups(args["infile"],args["Bulk"])
+    (dups,fieldnames)=Check_For_Dups(args["infile"],args["Bulk"],args["EC520"])
     if args["CSV"]:
         Write_Dups_CSV(args["outfile"],dups,fieldnames)
     else:

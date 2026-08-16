@@ -15,6 +15,7 @@ def get_args():
     parser.add_argument('outfile', type=argparse.FileType('w'))
 
     parser.add_argument("--CSV", help="Output Duplicates as a CSV file. Otherwise output as a delete script",action="store_true")
+    parser.add_argument("--EC520", help="Treat EC520- and EC520-W- names with the same serial as duplicates",action="store_true")
 
 #    parser.add_argument("--CSV", help="Output Duplicates as a CSV file",action="store_true")
     parser.add_argument("--Tell", "-T", help="Tell Settings",action="store_true")
@@ -22,7 +23,14 @@ def get_args():
     parser = parser.parse_args()
     return (vars(parser))
 
-def Check_For_Dups(infile):
+def canonical_name(name, ec520):
+    if not ec520:
+        return name
+    if name.startswith("EC520-W-"):
+        return "EC520-" + name[len("EC520-W-"):]
+    return name
+
+def Check_For_Dups(infile,ec520):
     reader = csv.DictReader(infile)
     devices={}
     dups=[]
@@ -36,44 +44,46 @@ def Check_For_Dups(infile):
 #            print(each_row)
             sys.exit("Error: Row does not have 11 fields")
 
-        if each_row["Name"] in devices:
-#            pprint(devices[each_row["Name"]])
+        name_key=canonical_name(each_row["Name"],ec520)
+
+        if name_key in devices:
+#            pprint(devices[name_key])
 #            if each_row["LastReported"] == "None":
 #                last_reported=None
 #            else:
 #                last_reported=datetime.strptime(each_row["LastReported"],"%Y-%m-%dT%H:%M:%S.%f%z")
 
-#            if devices[each_row["Name"]]["LastReported"] == "None":
+#            if devices[name_key]["LastReported"] == "None":
 #                previous_last_reported = None
 #            else:
-#                previous_last_reported=datetime.strptime(devices[each_row["Name"]]["LastReported"],"%Y-%m-%dT%H:%M:%S.%f%z")
+#                previous_last_reported=datetime.strptime(devices[name_key]["LastReported"],"%Y-%m-%dT%H:%M:%S.%f%z")
 
 #            if last_reported == None and previous_last_reported == None:
 #                # If we have never connected on each then we want to keep the newest registered unit
 #                last_reported=datetime.strptime(each_row["Created"],"%Y-%m-%dT%H:%M:%S.%f%z")
-#                previous_last_reported=datetime.strptime(devices[each_row["Name"]]["Created"],"%Y-%m-%dT%H:%M:%S.%f%z")
+#                previous_last_reported=datetime.strptime(devices[name_key]["Created"],"%Y-%m-%dT%H:%M:%S.%f%z")
 #            if last_reported == None: # current is blank so we want to do nothing with it:
 #                writer.writerow(each_row)
 #            elif previous_last_reported == None: #Previous was blank so we want to replace it, print out the dup files
-#                writer.writerow(devices[each_row["Name"]])
-#                devices[each_row["Name"]]=each_row
+#                writer.writerow(devices[name_key])
+#                devices[name_key]=each_row
 
             last_created=datetime.strptime(each_row["Created"],"%Y-%m-%dT%H:%M:%S.%f%z")
-            previous_last_created=datetime.strptime(devices[each_row["Name"]]["Created"],"%Y-%m-%dT%H:%M:%S.%f%z")
+            previous_last_created=datetime.strptime(devices[name_key]["Created"],"%Y-%m-%dT%H:%M:%S.%f%z")
 
             # Here we have two records, at least one of them is not None
 
             if last_created > previous_last_created: #Newer than the last one, so replace it
-                dups.append(devices[each_row["Name"]])
-#                writer.writerow(devices[each_row["Name"]])
-                devices[each_row["Name"]]=each_row
+                dups.append(devices[name_key])
+#                writer.writerow(devices[name_key])
+                devices[name_key]=each_row
             else:
 #                writer.writerow(each_row)
                 dups.append(each_row)
 
 
         else:
-            devices[each_row["Name"]]=each_row
+            devices[name_key]=each_row
     return(dups,reader.fieldnames)
 
 
@@ -101,7 +111,7 @@ def main():
     if args["Tell"]:
         pass
 
-    (dups,fieldnames)=Check_For_Dups(args["infile"])
+    (dups,fieldnames)=Check_For_Dups(args["infile"],args["EC520"])
 
     if args["CSV"]:
         Write_Dups_CSV(args["outfile"],dups,fieldnames)

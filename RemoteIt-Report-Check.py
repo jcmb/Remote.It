@@ -190,7 +190,7 @@ def processReport(delete, checkServices, summary, invalid, changed, HTML):
                     "Changed",
                     "Devices that ID's have changed",
                     [
-                        "Orginal ID",
+                        "Original ID",
                         "Created",
                         "Last Contact",
                         "New ID",
@@ -201,7 +201,7 @@ def processReport(delete, checkServices, summary, invalid, changed, HTML):
                 TABLES.append("Changed")
             else:
                 print(
-                    "Orginal ID",
+                    "Original ID",
                     "Created",
                     "Last Contact",
                     "New ID",
@@ -581,7 +581,7 @@ def processReport(delete, checkServices, summary, invalid, changed, HTML):
         # Print the count
         # print("Number of 'Bulk Service' devices:", bulk_service_count)
         if HTML:
-            if changed or services or invalid:
+            if changed or checkServices or invalid:
                 HTML_Unit.output_table_footer(HTML_File)
 
             HTML_File.write("<h2>Completed: ")

@@ -49,6 +49,7 @@ def get_args():
       sys.stderr.write("Device ID : {}\n".format(args['Device_ID']))
       sys.stderr.write("HW ID : {}\n".format(args['HW_ID']))
       sys.stderr.write("Force Delete: {}\n".format(args['Force']))
+      sys.stderr.write("DryRun: {}\n".format(args['DryRun']))
       sys.stderr.write("Verbose: {}\n".format(args['Verbose']))
 
    return (args)

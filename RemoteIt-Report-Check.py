@@ -12,6 +12,7 @@ import csv
 from pprint import pprint
 from collections import defaultdict
 import argparse
+import datetime
 
 try:
     from JCMBSoftPyLib import HTML_Unit
@@ -63,7 +64,13 @@ def get_args():
 
     group.add_argument(
         "--Details",
-        help="Report All Details of the account. Written to DeviceList.html",
+        help="Report All device and services in the account. Written to DeviceList.html",
+        action="store_true",
+    )
+    
+    group.add_argument(
+        "--Devices",
+        help="Report All devices in the account. Written to DeviceList.html",
         action="store_true",
     )
 
@@ -90,13 +97,19 @@ def get_args():
 # pylint: disable=R0913,R0914,R1702,R0912,R0915
 
 
-def FullReport():
+def FullReport(FullDetails=True):
     TABLES = []
     with open("DeviceList.csv", "r", encoding="utf-8") as inputFile:
         reader = csv.reader(inputFile)
         HTML_File = open("DeviceList.html", "w", encoding="utf-8")
-        HTML_Unit.output_html_header(HTML_File, "Production Remote Account")
+        HTML_Unit.output_html_header(HTML_File, "Remote.it Account")
         HTML_Unit.output_html_body(HTML_File)
+
+        HTML_File.write("<h2>Created: ")
+        utc_time = datetime.datetime.now(datetime.timezone.utc)
+        HTML_File.write(f"{utc_time.strftime('%A, %B %d, %Y at %I:%M:%S %p %Z')}")            
+        HTML_File.write("</h2>")
+        
 
         # Skip the header row
         # pylint: disable=W0612
@@ -104,7 +117,7 @@ def FullReport():
         HTML_Unit.output_table_header(
             HTML_File,
             "Details",
-            "Production Account Details",
+            "Account Details",
             [
                 "id",
                 "name",
@@ -119,9 +132,20 @@ def FullReport():
         TABLES.append("Details")
 
         for row in reader:
-            HTML_Unit.output_table_row(HTML_File, row)
+#            pprint(row)
+            if FullDetails:
+                HTML_Unit.output_table_row(HTML_File, row)
+            else:
+                if row[3] == "Bulk Service":
+                    HTML_Unit.output_table_row(HTML_File, row)
+
 
         HTML_Unit.output_table_footer(HTML_File)
+        HTML_File.write("<h2>Completed: ")
+        utc_time = datetime.datetime.now(datetime.timezone.utc)
+        HTML_File.write(f"{utc_time.strftime('%A, %B %d, %Y at %I:%M:%S %p %Z')}")            
+        HTML_File.write("</h2>")
+        
         HTML_Unit.output_html_footer(HTML_File, TABLES)
 
 
@@ -137,8 +161,14 @@ def processReport(delete, checkServices, summary, invalid, changed, HTML):
 
         if HTML:
             HTML_File = sys.stdout  # open("DeviceList.html","w")
-            HTML_Unit.output_html_header(HTML_File, "Production Remote Account")
+            HTML_Unit.output_html_header(HTML_File, "Remote.it Account")
             HTML_Unit.output_html_body(HTML_File)
+
+            HTML_File.write("<h2>Created: ")
+            utc_time = datetime.datetime.now(datetime.timezone.utc)
+            HTML_File.write(f"{utc_time.strftime('%A, %B %d, %Y at %I:%M:%S %p %Z')}")            
+            HTML_File.write("</h2>")
+
 
         # Skip the header row
         # pylint: disable=W0612
@@ -553,6 +583,12 @@ def processReport(delete, checkServices, summary, invalid, changed, HTML):
         if HTML:
             if changed or services or invalid:
                 HTML_Unit.output_table_footer(HTML_File)
+
+            HTML_File.write("<h2>Completed: ")
+            utc_time = datetime.datetime.now(datetime.timezone.utc)
+            HTML_File.write(f"{utc_time.strftime('%A, %B %d, %Y at %I:%M:%S %p %Z')}")            
+            HTML_File.write("</h2>")
+
             HTML_Unit.output_html_footer(HTML_File, TABLES)
 
 
@@ -568,8 +604,8 @@ def main():
     else:
         EXPECTED = {"EC520": [3], "Tablet": [2]}
 
-    if args["Details"]:
-        FullReport()
+    if args["Details"] or args["Devices"]:
+        FullReport(args["Details"])
     else:
         processReport(
             args["Delete"],
